@@ -1,18 +1,97 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
-// Put in track
-const TRACK_URL = "/audio/test_audio.wav";
+const BASE = import.meta.env.BASE_URL;
+
+const TRACKS = [
+  {
+    name: "1D",
+    url: `${BASE}audio/1D.wav`,
+  },
+  {
+    name: "2A",
+    url: `${BASE}audio/2A.wav`,
+  },
+  {
+    name: "3B",
+    url: `${BASE}audio/13B.wav`,
+  },
+  {
+    name: "4C",
+    url: `${BASE}audio/4C.wav`,
+  },
+  {
+    name: "5N",
+    url: `${BASE}audio/5N.wav`,
+  },
+  {
+    name: "6G",
+    url: `${BASE}audio/6G.wav`,
+  },
+  {
+    name: "7L",
+    url: `${BASE}audio/7L.wav`,
+  },
+  {
+    name: "8M",
+    url: `${BASE}audio/8M.wav`,
+  },
+  {
+    name: "9N",
+    url: `${BASE}audio/9N.wav`,
+  },
+  {
+    name: "10N",
+    url: `${BASE}audio/10N.wav`,
+  },
+  {
+    name: "11S",
+    url: `${BASE}audio/11S.wav`,
+  },
+  {
+    name: "12A",
+    url: `${BASE}audio/12A.wav`,
+  },
+  {
+    name: "13A",
+    url: `${BASE}audio/13A.wav`,
+  },
+  {
+    name: "14A",
+    url: `${BASE}audio/14A.wav`,
+  },
+  {
+    name: "15D",
+    url: `${BASE}audio/15D.wav`,
+  },
+  {
+    name: "16A",
+    url: `${BASE}audio/16A.wav`,
+  },
+  {
+    name: "17N",
+    url: `${BASE}audio/17N.wav`,
+  },
+  {
+    name: "18M",
+    url: `${BASE}audio/18M.wav`,
+  },
+  {
+    name: "19L",
+    url: `${BASE}audio/19L.wav`,
+  },
+];
+
+const buildCues = () =>
+  [...LETTER_STRING.toUpperCase()].map((letter, i) => ({
+    time: START_OFFSET_S + i * INTERVAL_S,
+    letter,
+  }));
 
 // Order and interval of letters
 const LETTER_STRING =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  "UDAXIHHEXDVXRCSNBACGHQTARGWUWRNHOSIZAYZFWNKIEGYKDCMDLLTIZBXORDMCRJUTLSGWCBVHYJCHDMIOULFLLGVIWVUCTUFRXHFOMIUWRHVKYYBHBZKMICGSWKGUPMUOE";
 const START_OFFSET_S = 0.25;
-const INTERVAL_S = 0.75; // time between letter starts
-
-const CUES = [...LETTER_STRING.toUpperCase()].map((letter, i) => ({
-  time: START_OFFSET_S + i * INTERVAL_S,
-  letter,
-}));
+const INTERVAL_S = 0.9; // time between letter starts
 
 const WINDOW_S = 1; // max time to respond after a letter starts
 const COUNTDOWN_FROM = 3;
@@ -30,13 +109,16 @@ export default function App() {
   const audioRef = useRef(null);
   const current = useRef({ letter: null, answered: false });
 
+  const [trackIdx, setTrackIdx] = useState(0);
+  const cues = useMemo(() => buildCues(TRACKS[trackIdx]), [trackIdx]);
+
   // Create and preload audio
   useEffect(() => {
-    const audio = new Audio(TRACK_URL);
+    const audio = new Audio(TRACKS[trackIdx].url);
     audio.preload = "auto";
     audioRef.current = audio;
     return () => audio.pause();
-  }, []);
+  }, [trackIdx]);
 
   const start = () => {
     setCount(COUNTDOWN_FROM);
@@ -92,8 +174,8 @@ export default function App() {
 
       // Latest cue that has started
       let idx = -1;
-      for (let i = CUES.length - 1; i >= 0; i--) {
-        if (CUES[i].time <= t) {
+      for (let i = cues.length - 1; i >= 0; i--) {
+        if (cues[i].time <= t) {
           idx = i;
           break;
         }
@@ -103,10 +185,10 @@ export default function App() {
         closeWindow();
         active = idx;
         if (idx >= 0) {
-          current.current = { letter: CUES[idx].letter, answered: false };
+          current.current = { letter: cues[idx].letter, answered: false };
           setRound(idx + 1);
         }
-      } else if (active >= 0 && t > CUES[active].time + WINDOW_S) {
+      } else if (active >= 0 && t > cues[active].time + WINDOW_S) {
         closeWindow();
       }
 
@@ -126,7 +208,7 @@ export default function App() {
       audio.removeEventListener("ended", onEnded);
       audio.pause();
     };
-  }, [phase]);
+  }, [phase, cues]);
 
   // Keyboard input
   useEffect(() => {
@@ -158,7 +240,21 @@ export default function App() {
     >
       <h1>Letter Typing Test</h1>
 
-      {phase === "idle" && <button onClick={start}>Start</button>}
+      {phase === "idle" && (
+        <>
+          <select
+            value={trackIdx}
+            onChange={(e) => setTrackIdx(Number(e.target.value))}
+          >
+            {TRACKS.map((t, i) => (
+              <option key={i} value={i}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+          <button onClick={start}>Start</button>
+        </>
+      )}
 
       {phase === "countdown" && (
         <h2 style={{ fontSize: 72 }}>{count || "Go"}</h2>
@@ -167,7 +263,7 @@ export default function App() {
       {phase === "playing" && (
         <>
           <p>
-            Letter {round} of {CUES.length}. Type what you hear.
+            Letter {round} of {cues.length}. Type what you hear.
           </p>
           <p style={{ height: 24 }}>{feedback}</p>
           <p>
@@ -179,7 +275,7 @@ export default function App() {
       {phase === "done" && (
         <>
           <h2>
-            {hits} / {CUES.length} correct
+            {hits} / {cues.length} correct
           </h2>
           <table style={{ margin: "0 auto 24px", borderCollapse: "collapse" }}>
             <thead>
