@@ -320,7 +320,7 @@ export default function App() {
           >
             Copy Hit/Miss List
           </button>
-          <button onClick={start}>Play again</button>
+          <button onClick={() => setPhase("idle")}>Go Back</button>
         </>
       )}
     </div>
