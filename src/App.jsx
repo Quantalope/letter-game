@@ -6,6 +6,7 @@ const TRACKS = [
   {
     name: "practice",
     url: `${BASE}audio/practice.wav`,
+    cue: "SWVUPFPJLLZIBDJFSRGTRBPHDWKQKCCPYUZYDIEW",
   },
   {
     name: "1D",
@@ -17,7 +18,7 @@ const TRACKS = [
   },
   {
     name: "3B",
-    url: `${BASE}audio/13B.wav`,
+    url: `${BASE}audio/3B.wav`,
   },
   {
     name: "4C",
@@ -85,8 +86,8 @@ const TRACKS = [
   },
 ];
 
-const buildCues = () =>
-  [...LETTER_STRING.toUpperCase()].map((letter, i) => ({
+const buildCues = (t) =>
+  [...(t.cue ?? LETTER_STRING).toUpperCase()].map((letter, i) => ({
     time: START_OFFSET_S + i * INTERVAL_S,
     letter,
   }));
