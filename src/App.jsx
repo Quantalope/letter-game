@@ -4,6 +4,10 @@ const BASE = import.meta.env.BASE_URL;
 
 const TRACKS = [
   {
+    name: "practice",
+    url: `${BASE}audio/practice.wav`,
+  },
+  {
     name: "1D",
     url: `${BASE}audio/1D.wav`,
   },
